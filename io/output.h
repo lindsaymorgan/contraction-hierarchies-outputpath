@@ -126,6 +126,7 @@ void exportContractionHierarchy(ostream& out, const Graph* g)
     VERBOSE( Percent percent1( n ); )
     VERBOSE( unsigned int i1 = 0; )
     unsigned int level;
+    //print nodelevel to file
     for ( NodeID u = 0; u < n; u++ )
     {
         level = g->node(u).level();
@@ -174,6 +175,8 @@ void exportContractionHierarchy(ostream& out, const Graph* g)
     VERBOSE( cout << "Export shortcut edges..." << endl; );
     VERBOSE( Percent percent3( m2 ); )
     VERBOSE( unsigned int i3 = 0; )
+//    ofstream file( "../docu/shortcut.txt" );
+//    streambuf *x = cout.rdbuf( file.rdbuf( ) );
     for ( NodeID u = 0; u < g->noOfNodes(); u++ )
     {
         EdgeID lastEdge = g->lastEdge(u);
@@ -202,6 +205,8 @@ void exportContractionHierarchy(ostream& out, const Graph* g)
                 writePrimitive( out, flags );
                 // middle node of shortcut
                 writePrimitive( out, middle );
+
+//                cout<<source<<' '<<target<<' '<<weight<<' '<<flags<<' '<<middle<<endl;
 
                 VERBOSE( percent3.printStatus( i3++ ); )
             }

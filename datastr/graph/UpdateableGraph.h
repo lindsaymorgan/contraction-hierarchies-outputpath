@@ -1097,6 +1097,7 @@ private:
             }
             nodeU.setFirstLevelEdge(_edges.size());
             while ((e < edges.size()) && (edges[e].source() == u)) {
+                if ( edges[e].weight() == 0 ) continue;
                 assert( edges[e].weight() > 0 );
                 _edges.push_back(edges[e]);
                 e++;

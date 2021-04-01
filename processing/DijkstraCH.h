@@ -199,7 +199,7 @@ public:
 
         CurrentNode u;
         int searchID = 0;
-        bool pqEmpty[2] = {pqueue(0).empty(), pqueue(1).empty()};
+        bool pqEmpty[2] = {pqueue(0).empty(), pqueue(1).empty()};  //两个方向搜索的堆是否为空
         while (! (pqEmpty[0] && pqEmpty[1])) {
 
             // different strategies: "Which pqueue should be preferred ?"
@@ -217,10 +217,10 @@ public:
             if (pqEmpty[searchID]) break;
 
             // *** deleteMin ***
-            bool abort = deleteMin(searchID, u);
+            bool abort = deleteMin(searchID, u);  //移除堆里最小的节点 存入u 返回是否移除成功abort
 
             // *** relaxEdges ***
-            relaxEdges( searchID, u );
+            relaxEdges( searchID, u );  //基于之前取出的最小节点进行relax
 
             // Mark that we "want" to abort now and we will only go on
             // until we are sure that we haven't missed anything.
@@ -786,7 +786,7 @@ public:
     * if the specified node is reached; returns 0, otherwise.
     */
     NodeID isReached(int searchID, const MyNode& v) const {
-        NodeID index = v.pqElement();
+        NodeID index = v.pqElement();  //Returns the index of the corresponding elements in the pqueues
         if (index == 0) return 0;
         if (pqueue(searchID).isDummy(index)) return 0;
         return index;
@@ -1032,16 +1032,16 @@ private:
     * @return the index of the pq element that represents the inserted node
     */
     NodeID insert(int searchID, EdgeWeight dist, NodeID nodeID) {
-        NodeID index = _graph->node(nodeID).pqElement();
-        if (index == 0) {
-            index = pqueue(searchID).insert(dist);
-            _graph->node(nodeID).pqElement(index);
+        NodeID index = _graph->node(nodeID).pqElement();  //the index of the corresponding elements in the pqueues
+        if (index == 0) {   //如果nodeID对应节点没有记录index
+            index = pqueue(searchID).insert(dist);  //往对应搜索方向的堆里插dist，返回新的index
+            _graph->node(nodeID).pqElement(index);  //存index
             if (searchDirections == 2) pqueue(1-searchID).insertDummy();
         }
         else {
-            pqueue(searchID).insert(dist, index);
+            pqueue(searchID).insert(dist, index);  //如果有记录，更新
         }
-        PQData& data = pqData(searchID, index);
+        PQData& data = pqData(searchID, index);  //Returns a reference to the data object of the specified pq element
         data.init(nodeID);
         if ( localSearch )
         {
@@ -1151,7 +1151,7 @@ private:
     */
     void relaxEdges(int searchID, CurrentNode& parent, NodeID ignore = SPECIAL_NODEID) {
         // No reference ! The memory of the underlying vector can be reallocated !
-        const PQData parentData = pqData(searchID, parent.index);
+        const PQData parentData = pqData(searchID, parent.index);  //Returns a reference to the data object of the specified pq element
 
         EdgeWeight parentDist = parent.dist;
 
@@ -1173,7 +1173,7 @@ private:
         }
 
         // first and last edge of the current node in the current level
-        EdgeID firstEdge = _graph->firstLevelEdge(parent.nodeID);
+        EdgeID firstEdge = _graph->firstLevelEdge(parent.nodeID);  //Returns the index of the first edge of u that leads to the same or higher level
         EdgeID lastEdge = _graph->lastEdge(parent.nodeID);
 
         for (parent.edgeID = firstEdge; parent.edgeID < lastEdge; parent.edgeID++) {

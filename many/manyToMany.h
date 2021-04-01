@@ -177,6 +177,7 @@ public:
         assert( sources.size() == result.noOfRows() );
         assert( targets.size() == result.noOfCols() );
 
+
         VERBOSE( cerr << "computing " << sources.size() << " x " << targets.size() << " table ..." << endl );
         COUNTING( counter.reset() );
         const double start = timestamp();
@@ -251,6 +252,83 @@ public:
         COUNTING( cerr << "forward search space: " << (long long)counter.count(COUNT_DEL_MIN, COUNT_TEMP) << endl );
         COUNTING( cerr << "bucket scans (all): " << bucketScans << endl );
 	    //COUNTING( cerr << "bucket scans (top): " << bucketScansTop << endl );
+    }
+
+    void computeSingle(NodeID sources, NodeID targets, EdgeWeight result) {
+
+        COUNTING( counter.reset() );
+        const double start = timestamp();
+
+        // init table
+//        result=Weight::MAX_VALUE;
+
+        // backward search
+        VERBOSE( cerr << "backward search" << endl );
+        const NodeID t = targets;
+        setCurrentNode(targets);
+        _dBW.bidirSearch(SPECIAL_NODEID, t);
+        _dBW.obtainRelevantSearchSpace(*this);
+        _dBW.clear();
+
+        double elapsedTime = timestamp() - start;
+        LOG_TIME( if (! performBucketScans) cerr << elapsedTime << " " );
+        VERBOSE( cerr << elapsedTime << " s" << endl );
+        COUNTING( cerr << "backward search space: " << (long long)counter.count(COUNT_DEL_MIN, COUNT_TEMP) << endl );
+        COUNTING( counter.reset() );
+
+        VERBOSE( cerr << "  search space sizes: int " << _searchSpacesBwDynInt.size()
+                      << " + short " << _searchSpacesBwDynShort.size() << endl );
+
+        // only the 'int'-search space is used
+        assert( _searchSpacesBwDynShort.size() == 0 );
+
+        // sort and copy
+        VERBOSE( cerr << "sort and copy" << endl );
+        _searchSpacesBwDynInt.sort(_g->noOfNodes());
+        _searchSpacesBwInt = _searchSpacesBwDynInt;
+        elapsedTime = timestamp() - start;
+        LOG_TIME( if (! performBucketScans) cerr << elapsedTime << " " );
+        VERBOSE( cerr << elapsedTime << " s" << endl );
+
+        // forward search
+        VERBOSE( cerr << "forward search" << endl );
+        COUNTING( unsigned long long bucketScans = 0 );
+        //COUNTING( unsigned long long bucketScansTop = 0 );
+        _dFW.bidirSearch(sources, SPECIAL_NODEID);
+        _dFW.obtainRelevantSearchSpace(*this);
+        _dFW.clear();
+
+//        if (!performBucketScans) {
+//            continue;
+//        }
+//            const NodeID matrixIndexOffset = result.index(u, 0);
+        NodeID best_FW,best_BW;
+        for (NodeID i = 0; i < _searchSpaceFW.size(); i++) {
+            const NodeID via = _searchSpaceFW[i].target();
+            const EdgeWeight distFW = _searchSpaceFW[i].weight();
+
+            const ISSInt::const_iterator endInt = _searchSpacesBwInt.end(via);
+            for (ISSInt::const_iterator it = _searchSpacesBwInt.begin(via); it != endInt; it++) {
+                if (distFW + it->dist() < result) {
+                    result = distFW + it->dist();
+                    best_FW = via;
+                    best_BW = it->origin();
+                }
+                COUNTING( bucketScans++ );
+                //COUNTING( if (_g->node(via).level() >= _earlyStopLevel) bucketScansTop++ );
+            }
+
+        }
+        _searchSpaceFW.clear();
+        cout<<best_BW<<' '<<best_FW<<endl;
+        elapsedTime = timestamp() - start;
+        LOG_TIME( cerr << elapsedTime << " " );
+        LOG_TIME( if (performBucketScans) cerr << endl );
+        VERBOSE( cerr << elapsedTime << " s" << endl );
+        std::cout<<result<<endl;
+        COUNTING( cerr << "forward search space: " << (long long)counter.count(COUNT_DEL_MIN, COUNT_TEMP) << endl );
+        COUNTING( cerr << "bucket scans (all): " << bucketScans << endl );
+        //COUNTING( cerr << "bucket scans (top): " << bucketScansTop << endl );
     }
 
 private:

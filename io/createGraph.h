@@ -259,13 +259,13 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
         edgeList.push_back(edge1);
         edgeList.push_back(edge2);
 
-        // Check wheter end of line is reached
-        if ( in.peek() !=  '\n' && in.peek() != '\r' )
-        {
-          cerr << "After edge number " << i << " is no newline." << endl;
-          cerr << "Input format error, aborting." << endl;
-          exit(1);
-        }
+//        // Check wheter end of line is reached
+//        if ( in.peek() !=  '\n' && in.peek() != '\r' )
+//        {
+//          cerr << "After edge number " << i << " is no newline." << endl;
+//          cerr << "Input format error, aborting." << endl;
+//          exit(1);
+//        }
 
     }
 

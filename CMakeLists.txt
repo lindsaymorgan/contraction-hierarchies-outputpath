@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 3.1)
 project (contraction-hierarchies)
 
+if(UNIX OR APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -std=c++11")
+endif()
+
 find_package(Boost 1.57 COMPONENTS regex REQUIRED)
 find_package(Protobuf)
 

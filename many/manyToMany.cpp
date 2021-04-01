@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
 
     VERBOSE( cerr << "read graph from '" << opts.input_fn << "'" << endl);
     VERBOSE( cerr << "read nodes from '" << opts.nodes_fn << "'" << endl);
-    VERBOSE( cerr << "write matrix to '" << opts.matrix_fn << "'" << endl);
+
     VERBOSE( if (writeSourceNodes) cerr << "write source nodes to cerr" << endl );
-    VERBOSE( if (writeMatrix)      cerr << "write matrix to cerr" << endl );
+
     VERBOSE( if (validateResult)   cerr << "validate result" << endl );
 
     // read graph
@@ -149,50 +149,34 @@ int main(int argc, char *argv[])
     protos::ch::Nodes nodes;
     readMessage(opts.nodes_fn, &nodes);
 
-    vector<NodeID> sources;
-    readNodes(graph, nodes.sources(), &sources);
-
-    vector<NodeID> targets;
-    readNodes(graph, nodes.targets(), &targets);
+//    vector<NodeID> sources;
+//    sources.insert(sources.begin(),1,618715);
+//    readNodes(graph, nodes.sources(), &sources);
+//
+//    vector<NodeID> targets;
+//    targets.insert(targets.begin(),1,234878);
+//    readNodes(graph, nodes.targets(), &targets);
 
     // create many-to-many object
     LevelID earlyStopLevel = 10;
     ManyToMany<MyGraph, DijkstraManyToManyFW, DijkstraManyToManyBW, performBucketScans> mtm(graph, earlyStopLevel);
 
     // compute matrix
-    Matrix<EdgeWeight> matrix(sources.size(), targets.size());
-    mtm.computeMatrix( sources, targets, matrix );
+//    Matrix<EdgeWeight> matrix(sources.size(), targets.size());
+//    mtm.computeMatrix( sources, targets, matrix );
+//    std::cout<<matrix<<endl;
 
-    // generate and write output
-    protos::ch::Matrix outMatrix;
-    outMatrix.set_scale(SCALE);
-    for (int i=0; i < sources.size(); i++) {
-        protos::ch::Row* row = outMatrix.add_rows();
-        for (int j=0; j < targets.size(); j++) {
-            row->add_data(SCALE * matrix.value(i, j));
-        }
-    }
-    writeMessage(opts.matrix_fn, &outMatrix);
+    //single to single test
+    NodeID source,target;
+    cout<<"source "<<source<<" target "<<target<<endl;
+    source=234878;
+    target=618715;
+//    source=0;
+//    target=4;
+    EdgeWeight result=Weight::MAX_VALUE;
+    mtm.computeSingle(source,target,result);
 
-    if (validateResult) {
-        // compute reference solution
-        Matrix<EdgeWeight> matrixRef(sources.size(), targets.size());
-        mtm.computeMatrixNaive( sources, targets, matrixRef);
-
-        // check
-        if (matrix == matrixRef) {
-            VERBOSE( cerr << "Solution validated." << endl );
-        } else {
-            cerr << "Wrong solution!" << endl;
-        }
-    }
-
-    if (writeMatrix) {
-        VERBOSE( cerr << "write matrix" << endl );
-        cerr << matrix;
-    }
-
-    delete graph;
+//    std:cout<<result<<endl;
 }
 
 // doesn't look nice, but required by the compiler (gcc 4)

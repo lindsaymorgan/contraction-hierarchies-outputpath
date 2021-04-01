@@ -25,7 +25,7 @@
 #include <limits>
 
 typedef uint32_t EdgeWeight;
-typedef int SignedEdgeWeight;
+typedef uint32_t SignedEdgeWeight;
 
 
 /**
@@ -36,15 +36,15 @@ typedef int SignedEdgeWeight;
 class Weight
 {
 public:
-    static const SignedEdgeWeight SIGNED_MIN_VALUE = -__INT_MAX__ - 1;
-    static const EdgeWeight SIGNED_MAX_VALUE = (EdgeWeight)__INT_MAX__;
+    static const constexpr SignedEdgeWeight SIGNED_MIN_VALUE = -__INT_MAX__ - 1;
+    static const constexpr EdgeWeight SIGNED_MAX_VALUE = (EdgeWeight)__INT_MAX__;
 
     /**
      * max value of an edge weight (due to the chosen type)
      * (used to represent 'infinity')
      */
-    static const EdgeWeight MAX_VALUE = __INT_MAX__ * 2U + 1;
-    static const EdgeWeight MIN_VALUE = 0;
+    static const constexpr EdgeWeight MAX_VALUE = __INT_MAX__ * 2U + 1;
+    static const constexpr EdgeWeight MIN_VALUE = 0;
 
     /**
      * max integer value of an edge weight which is actually used;
@@ -52,7 +52,7 @@ public:
      * all edge weights between 0 and MAX_INTEGER have no special meaning;
      * MAX_INTEGER has to be less than MAX_VALUE
      */
-    static const EdgeWeight MAX_INTEGER = MAX_VALUE - 1;
+    static const constexpr EdgeWeight MAX_INTEGER = MAX_VALUE - 1;
 };
 
 typedef unsigned long long Checksum;

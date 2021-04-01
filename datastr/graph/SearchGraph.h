@@ -239,7 +239,7 @@ public:
         // node-id mapping
         VectorSerializer< NodeID, NodeID >::deserialize(in, _mapExtToIntNodeIDs);
 
-        VERBOSE( cout << noOfNodes() << " " << noOfEdges() << endl; )
+        VERBOSE( cout << "Graph:" << noOfNodes() << " " << noOfEdges() << endl; )
         VERBOSE( cout << "done." << endl );
     }
 
