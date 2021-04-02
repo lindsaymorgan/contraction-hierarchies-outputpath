@@ -25,16 +25,13 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include "io/createGraph.h"
+#include "../io/createGraph.h"
 #include "io/output.h"
-#include "processing/DijkstraCH.h"
+#include "../processing/DijkstraCH.h"
 #include "processing/ConstructCH.h"
 
+
 using namespace std;
-using namespace google::protobuf::io;
 
 /**
  * Performing the bucket scans is a crucial part of the many-to-many computation.

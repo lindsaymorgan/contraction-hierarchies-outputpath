@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.1)
-project (many2many)
+project (many2manypath)
 
 if(UNIX OR APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -std=c++11")
@@ -10,7 +10,7 @@ find_package(Protobuf)
 
 file(GLOB MANY2MANY_SRC *.h *.cpp)
 
-add_executable(many2many ${MANY2MANY_SRC})
+add_executable(many2manypath ${MANY2MANY_SRC})
 target_link_libraries(many2manypath
     protos-ch
     ${Boost_LIBRARIES}
