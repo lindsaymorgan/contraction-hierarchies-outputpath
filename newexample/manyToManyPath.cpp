@@ -104,7 +104,6 @@ public:
     void parse() override {
         // input params
         set_option('i', &input_fn);
-        set_option('n', &nodes_fn);
 
         // output params
         set_option('o', &matrix_fn);
@@ -112,20 +111,18 @@ public:
     void
     run_checks() override {
         check_not_empty(input_fn, "input file not provided (-i)");
-        check_not_empty(nodes_fn, "input nodes not provided (-n)");
         check_not_empty(matrix_fn, "output matrix file name not provided (-o)");
     }
 
     void
     usage(const char *p) override {
-        cerr << "usage: " << p << " -i graph.sgr -n many2many-nodes.pb -o matrix.pb" << endl;
+        cerr << "usage: " << p << " -i graph.ddsg -o matrix.pb" << endl;
     }
 };
 
 
 /** The main program. */
 int main(int argc, char *argv[]) {
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     many2many_opts opts;
     opts.parse_options(argc, argv);
