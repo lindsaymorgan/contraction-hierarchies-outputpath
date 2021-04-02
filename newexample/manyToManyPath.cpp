@@ -28,6 +28,10 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include "io/createGraph.h"
+#include "io/output.h"
+#include "processing/DijkstraCH.h"
+#include "processing/ConstructCH.h"
 
 using namespace std;
 using namespace google::protobuf::io;
@@ -41,24 +45,26 @@ const bool performBucketScans = true;
 #define SCALE 1
 
 
-#include "../config.h"
-#include "../stats/utils.h"
+#include "config.h"
+#include "stats/utils.h"
 Counter counter;
 //#include "../datastr/general.h"
-#include "../datastr/graph/graph.h"
-#include "../datastr/graph/SearchGraph.h"
+#include "datastr/graph/graph.h"
+#include "datastr/graph/SearchGraph.h"
 
 typedef datastr::graph::SearchGraph TransitGraph;
 
 //#include "../stats/log.h"
-#include "../processing/DijkstraCH.h"
-#include "manyToMany.h"
+#include "processing/DijkstraCH.h"
+#include "many/manyToMany.h"
 #include "protos/ch/many2many.pb.h"
 #include "options_parser.h"
 
 typedef datastr::graph::SearchGraph MyGraph;
 typedef DijkstraCHManyToManyFW DijkstraManyToManyFW;
 typedef DijkstraCHManyToManyBW DijkstraManyToManyBW;
+typedef pair<NodeID, NodeID> stPair;
+typedef vector<stPair> stPairs;
 
 static void readNodes(const MyGraph *const g, const google::protobuf::RepeatedField<uint32_t>& in, vector<NodeID>* vs) {
     vs->resize(in.size());
@@ -121,63 +127,45 @@ public:
 
 
 /** The main program. */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     many2many_opts opts;
     opts.parse_options(argc, argv);
 
-
     const bool writeSourceNodes = false;
     const bool writeMatrix = false;
     const bool validateResult = false;
 
-    VERBOSE( cerr << "read graph from '" << opts.input_fn << "'" << endl);
-    VERBOSE( cerr << "read nodes from '" << opts.nodes_fn << "'" << endl);
+    VERBOSE(cerr << "read graph from '" << opts.input_fn << "'" << endl);
 
-    VERBOSE( if (writeSourceNodes) cerr << "write source nodes to cerr" << endl );
-
-    VERBOSE( if (validateResult)   cerr << "validate result" << endl );
-
-    // read graph
-    MyGraph *const graph = readGraph(opts.input_fn);
-
-    VERBOSE( cerr << "Graph read." << endl );
-
-    // read the input
-    protos::ch::Nodes nodes;
-    readMessage(opts.nodes_fn, &nodes);
-
-//    vector<NodeID> sources;
-//    sources.insert(sources.begin(),1,618715);
-//    readNodes(graph, nodes.sources(), &sources);
-//
-//    vector<NodeID> targets;
-//    targets.insert(targets.begin(),1,234878);
-//    readNodes(graph, nodes.targets(), &targets);
-
-    // create many-to-many object
-    LevelID earlyStopLevel = 10;
-    ManyToMany<MyGraph, DijkstraManyToManyFW, DijkstraManyToManyBW, performBucketScans> mtm(graph, earlyStopLevel);
-
-    // compute matrix
-//    Matrix<EdgeWeight> matrix(sources.size(), targets.size());
-//    mtm.computeMatrix( sources, targets, matrix );
-//    std::cout<<matrix<<endl;
+    //new read graph
+    string ddsgFile = opts.input_fn;//need edit
+    ifstream in(ddsgFile.c_str());
+    if (!in.is_open()) {
+        cerr << "Cannot open " << ddsgFile << endl;
+        exit(1);
+    }
+    datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(in, false, false, "");
+    in.close();
+    processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
     //single to single test
-    NodeID source,target;
-    cout<<"source "<<source<<" target "<<target<<endl;
-    source=234878;
-    target=618715;
-//    source=0;
-//    target=4;
-    EdgeWeight result=Weight::MAX_VALUE;
-    mtm.computeSingle(source,target,result);
+    NodeID source, target;
+    source = 234878;
+    target = 618715;
+    cout << "source " << source << " target " << target << endl;
 
-//    std:cout<<result<<endl;
+    dijkstraTest.bidirSearch(source, target);
+    Path path;
+
+    clock_t start, end;
+    start = clock();
+    dijkstraTest.pathTo(path, target, -1);
+    end = clock();
+    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
+
+    cout << source << " -> " << target << " length " << path.length() << endl;
+    cout << path << endl;
+    dijkstraTest.clear();
 }
-
-// doesn't look nice, but required by the compiler (gcc 4)
-const EdgeWeight Weight::MAX_VALUE;

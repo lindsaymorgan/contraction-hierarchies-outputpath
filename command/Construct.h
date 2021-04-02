@@ -244,13 +244,21 @@ namespace command {
                 processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
                 _test.resize(noOfTestCasesVerify);
+
+                //good path output
                 for (NodeID x = 0; x < noOfTestCasesVerify; x++) {
                     dijkstraTest.bidirSearch(runs[x].first, runs[x].second);
                     Path path;
+
+                    clock_t start,end;
+                    start=clock();
                     dijkstraTest.pathTo(path, runs[x].second, -1);
+                    end=clock();
+                    cout<<(double)(end-start)/CLOCKS_PER_SEC<<endl;
+
                     _test[x] = path.length();
                     cout << "[" << x << "] " << runs[x].first << " -> " << runs[x].second << " length " << path.length() << endl;
-                    //cout << path << endl;
+                    cout << path << endl;
                     dijkstraTest.clear();
                     VERBOSE( percent.printStatus(x); )
                 }
@@ -549,6 +557,7 @@ namespace command {
             for ( NodeID x = 0; x < warmup.size(); x++ )
             {
                 EdgeWeight dist = dijkstra.bidirSearch(warmup[x].first, warmup[x].second);
+//                cout<<warmup[x].first<<' '<<warmup[x].second<<' '<<dist<<endl;
                 if (dist == Weight::MAX_VALUE) dist = 0;
                 checkSum1 += dist;
                 dijkstra.clear();
@@ -566,6 +575,7 @@ namespace command {
             for (NodeID x = 0; x < runs.size(); x++) {
                 EdgeWeight dist = dijkstra.bidirSearch(runs[x].first, runs[x].second);
                 if (dist == Weight::MAX_VALUE) dist = 0;
+//                cout<<runs[x].first<<' '<<runs[x].second<<' '<<dist<<endl;
                 checkSum2 += dist;
                 dijkstra.clear();
             }
@@ -592,6 +602,7 @@ namespace command {
                     dijkstra.bidirSearch(runs[x].first, runs[x].second);
                     Path path;
                     dijkstra.pathTo(path, runs[x].second, -1, true, true /* expand */);
+//                    cerr<<path<<endl;
                     EdgeWeight dist = path.length();
                     if (dist == Weight::MAX_VALUE) dist = 0;
                     checkSum4 += dist;
@@ -632,6 +643,7 @@ namespace command {
             COUNTING( counter.reset(); )
             for (NodeID x = 0; x < runs.size(); x++) {
                 EdgeWeight dist = dijkstra.bidirSearch(runs[x].first, runs[x].second);
+//                cout<<runs[x].first<<' '<< runs[x].second<<' '<<dist<<endl;
                 if (dist == Weight::MAX_VALUE) dist = 0;
                 checkSum3 += dist;
 
@@ -641,6 +653,7 @@ namespace command {
                 {
                     Path path;
                     dijkstra.pathTo(path, runs[x].second, -1);
+//                    cerr<<path<<endl;
                     if ( path.length() != _test[x] )
                     {
                         cout << endl;
@@ -670,6 +683,7 @@ namespace command {
                     Path path;
                     //singleTime = timestamp();
                     dijkstra.pathTo(path, runs[x].second, -1, true, true /* expand */);
+//                    cerr<<runs[x].first<<' '<< runs[x].second<<' '<<path.length()<<' '<<path<<endl;
                     //timeExpand += timestamp() - singleTime;
 
                     pathExpandNoOfEdgesSum += path.noOfEdges();

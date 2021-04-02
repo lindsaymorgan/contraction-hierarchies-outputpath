@@ -1166,7 +1166,7 @@ private:
         // are not relaxed on backward search (MTMM_BW) because the forward search
         // will relax into the core. This is correct since the core is an overlay
         // graph.
-        if ( manyToManyMode == MTMM_BW )
+        if ( manyToManyMode == MTMM_BW )  //false
         {
             // do not relax edges of a core node
             if ( _graph->node(parent.nodeID).isInCore() ) return;
@@ -1190,19 +1190,19 @@ private:
             if (stallOnDemand)
             {
                 // try to wake up a node v that can start a stalling process
-                index = isReached(searchID, v);
+                index = isReached(searchID, v);   //看看v在不在堆里，不在的话index=0
                 // Node v has to be the endpoint of an edge (u,v) that
                 // points into the opposite direction
                 // (because then the edge (v,u) which is used in the stalling process points into
                 //  the right direction).
                 // Furthermore, v has to be reached.
-                if (edge.isDirected(1-searchID) && index) {
+                if (edge.isDirected(1-searchID) && index) {   //Returns true iff this edge is open in the given direction
                     const PQData& data = pqData(searchID, index);
-                    const bool stalled = data.stalled();
-                    const EdgeWeight vKey = stalled ? data.stallKey() : pqKey(searchID, index);
+                    const bool stalled = data.stalled();  //return (_stallKey != Weight::MAX_VALUE)
+                    const EdgeWeight vKey = stalled ? data.stallKey() : pqKey(searchID, index);  //Returns the key of the specified pq element
                     const EdgeWeight newKey = vKey + edge.weight();
                     if (newKey < parentDist) { // check whether this node is 'promising'
-                        stall(searchID, parent.nodeID, newKey);
+                        stall(searchID, parent.nodeID, newKey);  //Performs a stalling process, implemented by a BFS
                         assert( pqData(searchID, parent.index).stalled() );
                         return;
                     }
@@ -1315,12 +1315,12 @@ private:
     */
     void stall(const int searchID, NodeID u, EdgeWeight key) {
         COUNTING( counter.incDouble(COUNT_STALL_OPS) );
-        NodeID index = isReached(searchID, u);
+        NodeID index = isReached(searchID, u);   //看看v在不在堆里，不在的话index=0
         assert( index > 0 );
         PQData& data = pqData(searchID, index);
         data.stallKey(key);
-        _stallQueue.push(pair<NodeID, EdgeWeight>(u, key));
-        if (deepStallOnDemand) stallParent(searchID, u, data, key);
+        _stallQueue.push(pair<NodeID, EdgeWeight>(u, key)); //the stalling BFS (DM_QUERY)
+        if (deepStallOnDemand) stallParent(searchID, u, data, key);  //default false
 
         while (! _stallQueue.empty()) {
             COUNTING( counter.incDouble(COUNT_STALL_STEPS) );
