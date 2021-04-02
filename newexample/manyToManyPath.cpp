@@ -142,6 +142,8 @@ int main(int argc, char *argv[]) {
         cerr << "Cannot open " << ddsgFile << endl;
         exit(1);
     }
+
+    //copy from construct.h line 248
     datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(in, false, false, "");
     in.close();
     processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
