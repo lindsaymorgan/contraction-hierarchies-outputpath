@@ -1,9 +1,7 @@
 Contraction Hierarchies
 =======================
-Version 2008/06/24 Revision 447
 
-Please contact me (robert-geisberger@web.de) if you are using the source code
-as I am very interested in the possible applications that arise from using it.
+Forked from cestem
 
 Introduction
 ------------
@@ -27,24 +25,7 @@ Required libraries
 How to build & run
 ------------------
 
-    git submodule init
-    git submodule update
-    ./make-release.txt
-    ./run-node-order.sh docu/example.ddsg
-    ./run-contraction.sh docu/example.ddsg
-
-To clean the temporary generated files:
-
-    ./clean.sh docu/example.ddsg
-
-You can create a development project in Xcode:
-
-    mkdir build
-    cd build
-    cmake -G Xcode ..
-    cd ..
-    open contraction-hierarchies.xcodeproj
-
+use Clion
 
 Sources of documentation
 ------------------------
@@ -52,20 +33,7 @@ Sources of documentation
 In docs/index.html, there are some examples what command-line arguments
 can be used to create a CH and perform tests.
 
-Contact
--------
-Robert Geisberger (geisberger@ira.uka.de)
+Usage
+------------------------
 
-Additional programs
--------------------
-
-In the subfolder many/ is a test program for fast many-to-many distance table
-computations. However, the source code and the command-line arguments are well
-not documented well. It is an implementation of the algorithm desribed in the
-paper
-
-S. Knopp, P. Sanders, D. Schultes, F. Schulz, and D. Wagner. Computing
-many-to-many shortest paths using highway hierarchies. In Workshop on
-Algorithm Engineering and Experiments (ALENEX), 2007.
-
-but using contraction hierarchies.
+Use for fast many to many shortest path query
