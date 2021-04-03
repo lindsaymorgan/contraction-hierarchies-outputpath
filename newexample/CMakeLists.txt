@@ -10,15 +10,20 @@ find_package(Protobuf)
 
 
 file(GLOB MANY2MANY_SRC
-        io/*.h
-        processing/*.h
+        ${PROJECT_SOURCE_DIR}/../io/*.h
+        ${PROJECT_SOURCE_DIR}/../processing/*.h
+        ${PROJECT_SOURCE_DIR}/../stats/*.h
+        ${PROJECT_SOURCE_DIR}/../*.h
         *.h
         *.cpp)
 
+message("These files are included: ${MANY2MANY_SRC}")
+
 set(MANY2MANY_SRC
-        ${CHMAIN_FILES}
+        ${MANY2MANY_SRC}
         ${INCLUDE_FILES}
         )
+
 
 
 add_executable(many2manypath ${MANY2MANY_SRC})

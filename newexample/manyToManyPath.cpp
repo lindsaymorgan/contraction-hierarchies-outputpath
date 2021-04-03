@@ -25,12 +25,17 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "uintEdgeWeight.h"
+#include "config.h"
+#include "Command.h"
+
+#include "../stats/counter.h"
+#include "../stats/utils.h"
 #include "../io/createGraph.h"
 #include "../io/output.h"
 #include "../processing/DijkstraCH.h"
 #include "../processing/ConstructCH.h"
 #include <google/protobuf/io/zero_copy_stream.h>
-
 
 using namespace std;
 using namespace google::protobuf::io;

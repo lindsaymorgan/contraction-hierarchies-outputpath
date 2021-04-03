@@ -52,5 +52,5 @@ add_executable(contraction ${CHMAIN_SRC})
 set_target_properties(contraction PROPERTIES COMPILE_FLAGS "-DUSE_CH_EXPAND")
 target_link_libraries(contraction ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
-add_subdirectory(many)
+#add_subdirectory(many)
 add_subdirectory(newexample)

@@ -23,7 +23,10 @@
 #define COUNTER_H
 
 #include <vector>
+#include <iostream>
+#include <string>
 
+using namespace std;
 
 static const int COUNT_DEL_MIN = 0;
 static const int COUNT_DECR_KEY = 1;
