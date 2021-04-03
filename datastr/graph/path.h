@@ -45,9 +45,16 @@ class Path
         }
         assert( p.checkInvariant() );
         os << setprecision(20);
-        os << p.length() << ": " << p.node(0);
+//        os << p.length() << ": " << p.node(0);
+        os << p.node(0);
+//        for (EdgeID e = 0; e < p.noOfEdges(); e++)
+//            os << " --" << p._weights[e] << "-> " << p.node(e+1);
+//        os << endl;
         for (EdgeID e = 0; e < p.noOfEdges(); e++)
-            os << " --" << p._weights[e] << "-> " << p.node(e+1);
+            os << " " << p.node(e+1);
+        os << endl;
+        for (EdgeID e = 0; e < p.noOfEdges(); e++)
+            os << p._weights[e] << " " ;
         os << endl;
         return os;
     }

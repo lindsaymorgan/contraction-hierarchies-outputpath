@@ -105,31 +105,35 @@ public:
 
     string input_fn;
     string nodes_fn;
-    string matrix_fn;
+    string result_fn;
 
     many2many_opts() : options_parser_t("i:n:o:") {}
     void parse() override {
         // input params
         set_option('i', &input_fn);
+        set_option('n', &nodes_fn);
 
         // output params
-        set_option('o', &matrix_fn);
+        set_option('o', &result_fn);
     }
     void
     run_checks() override {
-        check_not_empty(input_fn, "input file not provided (-i)");
-        check_not_empty(matrix_fn, "output matrix file name not provided (-o)");
+        check_not_empty(input_fn, "input graph not provided (-i)");
+        check_not_empty(nodes_fn, "input nodes not provided (-n)");
+        check_not_empty(result_fn, "output file name not provided (-o)");
     }
 
     void
     usage(const char *p) override {
-        cerr << "usage: " << p << " -i graph.ddsg -o matrix.pb" << endl;
+        cerr << "usage: " << p << " -i graph.ddsg -n query.txt -o result.txt" << endl;
     }
 };
 
 
 /** The main program. */
 int main(int argc, char *argv[]) {
+    clock_t start, end;
+    start = clock();
 
     many2many_opts opts;
     opts.parse_options(argc, argv);
@@ -139,12 +143,29 @@ int main(int argc, char *argv[]) {
     const bool validateResult = false;
 
     VERBOSE(cerr << "read graph from '" << opts.input_fn << "'" << endl);
+    VERBOSE( cerr << "read nodes from '" << opts.nodes_fn << "'" << endl);
 
-    //new read graph
-    string ddsgFile = opts.input_fn;//need edit
+    //read graph
+    string ddsgFile = opts.input_fn;
     ifstream in(ddsgFile.c_str());
     if (!in.is_open()) {
         cerr << "Cannot open " << ddsgFile << endl;
+        exit(1);
+    }
+
+    //read node list
+    stPairs stNodes;
+    string nodeFile = opts.nodes_fn;
+    ifstream stFile(nodeFile.c_str());
+    NodeID s,t;
+
+    if (stFile.is_open()) {
+        while(stFile>>s>>t){
+            stNodes.push_back(stPair(s,t));
+        }
+    }
+    else {
+        cerr << "Cannot open " << nodeFile << endl;
         exit(1);
     }
 
@@ -153,22 +174,32 @@ int main(int argc, char *argv[]) {
     in.close();
     processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
-    //single to single test
+    //many to many test
     NodeID source, target;
-    source = 234878;
-    target = 618715;
-    cout << "source " << source << " target " << target << endl;
-
-    dijkstraTest.bidirSearch(source, target);
-    Path path;
-
-    clock_t start, end;
-    start = clock();
-    dijkstraTest.pathTo(path, target, -1);
     end = clock();
     cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
-    cout << source << " -> " << target << " length " << path.length() << endl;
-    cout << path << endl;
-    dijkstraTest.clear();
+    string reFile = opts.result_fn;
+    ofstream resultfile (reFile.c_str());
+    if (resultfile.is_open())
+    {
+        for (auto iter =stNodes.begin();iter!=stNodes.end();iter++){
+            source=(*iter).first;
+            target=(*iter).second;
+
+            dijkstraTest.bidirSearch(source, target);
+            Path path;
+            dijkstraTest.pathTo(path, target, -1);
+
+            resultfile << source << " " << target << " " << path.length() << endl;
+            resultfile << path ;
+            dijkstraTest.clear();
+        }
+        resultfile.close();
+    }
+    else cout << "Unable to open file";
+
+
+    end = clock();
+    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 }
