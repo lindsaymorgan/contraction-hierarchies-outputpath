@@ -36,4 +36,14 @@ can be used to create a CH and perform tests.
 Usage
 ------------------------
 
-Use for fast many to many shortest path query
+Use for fast many to many shortest path query - output path
+
+In newexample folder
+
+Input: graph.ddsg query.txt
+
+Output:result.txt
+3 lines for 1 query
+1. Source Target Length
+2. Path Nodes
+3. Path Edges Weight
