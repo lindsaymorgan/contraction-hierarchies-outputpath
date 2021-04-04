@@ -245,12 +245,15 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
             in >> weight;
         }
 
-        dir = 0;
+        dir = 0;  //no sure
         if (directed) in >> dir;
-        bool forward = true;
+        bool forward = true;  //if dir=1 then both true
         bool backward = true;
-        if (dir == 1) backward = false;
-        if (dir == 2) forward = false;
+//        if (dir == 1) backward = false;
+//        else if (dir == 2) forward = false;
+//adapt for my dataset
+        if (dir == 2) backward = false;  //only forward
+        else if (dir == 3) forward = false;  //only backward
         VERBOSE( if ((dir == 1) || (dir == 2)) onewayStreets++ );
         // note: all CLOSED roads (dir = 3) are considered as OPEN !
 

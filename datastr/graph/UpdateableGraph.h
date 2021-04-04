@@ -1087,7 +1087,7 @@ private:
         // build adjacency array and indices
         // for each node into the adjacency array
         EdgeID e = 0;
-        for (NodeID u = 0; u < nodeLevels.size(); u++) {
+        for (NodeID u = 0; u < nodeLevels.size(); u++) {  //
             UpdNode& nodeU = _nodes[u];
             nodeU.setFirstEdge(_edges.size());
             while ((e < edges.size()) && (edges[e].source() == u) && (node(edges[e].target()).level() < node(u).level())) {

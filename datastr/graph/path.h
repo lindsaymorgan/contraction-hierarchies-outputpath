@@ -37,9 +37,11 @@ class Path
     friend ostream& operator<<( ostream& os, const Path& p ) {
         if (p._notConnected) {
             os << "NOT CONNECTED" << endl;
+            os << "NOT CONNECTED" << endl;
             return os;
         }
         if (p.empty()) {
+            os << "EMPTY" << endl;
             os << "EMPTY" << endl;
             return os;
         }

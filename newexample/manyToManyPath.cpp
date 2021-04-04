@@ -152,6 +152,10 @@ int main(int argc, char *argv[]) {
         cerr << "Cannot open " << ddsgFile << endl;
         exit(1);
     }
+    datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(in, false, false, "");
+    in.close();
+    end = clock();
+    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
     //read node list
     stPairs stNodes;
@@ -170,14 +174,12 @@ int main(int argc, char *argv[]) {
     }
 
     //copy from construct.h line 248
-    datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(in, false, false, "");
-    in.close();
+
     processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
     //many to many test
     NodeID source, target;
-    end = clock();
-    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
+
 
     string reFile = opts.result_fn;
     ofstream resultfile (reFile.c_str());
