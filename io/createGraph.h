@@ -254,7 +254,8 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
 //adapt for my dataset
         if (dir == 2) backward = false;  //only forward
         else if (dir == 3) forward = false;  //only backward
-        VERBOSE( if ((dir == 1) || (dir == 2)) onewayStreets++ );
+        VERBOSE( if ((dir == 2) || (dir == 3)) onewayStreets++ );
+//        VERBOSE( if ((dir == 1) || (dir == 2)) onewayStreets++ );
         // note: all CLOSED roads (dir = 3) are considered as OPEN !
 
         CompleteEdge edge1(source, target, weight, false, forward, backward);
