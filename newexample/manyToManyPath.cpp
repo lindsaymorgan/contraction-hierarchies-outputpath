@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
         cerr << "Cannot open " << ddsgFile << endl;
         exit(1);
     }
-    datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(in, false, false, "");
+    auto[originEdgeList,levels,angles,n]  = readOringinGraphStream(in, false, false);
     in.close();
     end = clock();
     cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
@@ -162,10 +162,19 @@ int main(int argc, char *argv[]) {
     string nodeFile = opts.nodes_fn;
     ifstream stFile(nodeFile.c_str());
     NodeID s,t;
+    int lowestLevel;
+    int highestangle;
+    string preference;
+    vector<int> lowestLevels;
+    vector<int> highestangles;
+    vector<string> preferences;
 
     if (stFile.is_open()) {
-        while(stFile>>s>>t){
+        while(stFile>>s>>t>>lowestLevel>>highestangle>>preference){
             stNodes.push_back(stPair(s,t));
+            lowestLevels.push_back(lowestLevel);
+            highestangles.push_back(highestangle);
+            preferences.push_back(preference);
         }
     }
     else {
@@ -173,21 +182,24 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    //copy from construct.h line 248
-
-    processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
     //many to many test
     NodeID source, target;
-
 
     string reFile = opts.result_fn;
     ofstream resultfile (reFile.c_str());
     if (resultfile.is_open())
     {
-        for (auto iter =stNodes.begin();iter!=stNodes.end();iter++){
-            source=(*iter).first;
-            target=(*iter).second;
+        for (size_t i=0; i<stNodes.size(); i++){
+
+            source=stNodes[i].first;
+            target=stNodes[i].second;
+
+            datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
+                                                                                       angles, n, lowestLevels[i],
+                                                                                       highestangles[i], preferences[i],
+                                                                                       "");
+            processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
 
             dijkstraTest.bidirSearch(source, target);
             Path path;

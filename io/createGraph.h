@@ -149,7 +149,7 @@ void removeDuplicates(vector<CompleteEdge>& input, vector<CompleteEdge>& output)
  * @return the number of nodes
  */
 NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIsolatedNode,
-                           vector<CompleteEdge>& edgeList) {
+                           vector<CompleteEdge>& edgeList, vector<int>& levels, vector<int>& angles) {
     NodeID n; // number of nodes
     EdgeID m; // number of edges
     NodeID source, target;
@@ -231,9 +231,11 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
     VERBOSE( EdgeID onewayStreets = 0 );
     edgeList.reserve(2*m); // each edge will be added twice (once for each direction)
 
+
+    int level, angle;
+
     for (EdgeID i=0; i<m; i++) {
         EdgeWeight weight;
-
         in >> source >> target;
 
         if (adaptWeight) {
@@ -242,11 +244,15 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
             weight = static_cast<EdgeWeight>( round(tmp * weightFactor) );
         }
         else {
-            in >> weight;
+            in >> weight ;
         }
 
         dir = 0;  //no sure
-        if (directed) in >> dir;
+        if (directed) in >> dir >> level >> angle;
+        levels.push_back(level);
+        angles.push_back(angle);
+        levels.push_back(level);
+        angles.push_back(angle);
         bool forward = true;  //if dir=1 then both true
         bool backward = true;
 //        if (dir == 1) backward = false;
@@ -287,12 +293,42 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
  *       initially all nodes must have level n in the graph. The node order is specified
  *       separately.
  */
-datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable(istream &inGraph, const bool adaptWeight,
-                                        const bool addIsolatedNode, const string filenameHwyNodes) {
-    vector<CompleteEdge> edgeList;
-    const NodeID n = readGraphFromStream(inGraph, adaptWeight, addIsolatedNode, edgeList);
-    vector<CompleteEdge> edgeListWithoutDuplicates;
-    removeDuplicates(edgeList, edgeListWithoutDuplicates);
+struct originGraphResult { vector<CompleteEdge> edgeList;vector<int> levelList;vector<int> angleList; NodeID nodeNum; };
+originGraphResult readOringinGraphStream(istream &inGraph, const bool adaptWeight,
+                                       const bool addIsolatedNode){
+    vector<CompleteEdge> originEdgeList;
+    vector<int> levels;
+    vector<int> angles;
+    const NodeID n = readGraphFromStream(inGraph, adaptWeight, addIsolatedNode, originEdgeList,levels,angles);
+    return {originEdgeList, levels, angles, n};
+}
+
+datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable( vector<CompleteEdge>& edgeList, vector<int>& levels,
+                                                                   vector<int>& angles, NodeID n, int lowestLevel, int highestDegree,
+                                                                   string preferenceType ,const string filenameHwyNodes) {
+    vector<CompleteEdge> edgeListRemained;
+    if (lowestLevel<4 || highestDegree<180){
+        for (size_t i=0;i<edgeList.size();i++){
+            if (levels[i]<=lowestLevel & angles[i]<=highestDegree) edgeListRemained.push_back(edgeList[i]);
+        }
+    }
+    else{
+        edgeListRemained=edgeList;
+    }
+
+    if (preferenceType=="Rail"){
+        for (size_t i=0;i<edgeListRemained.size();i++){
+            if (levels[i]>0) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*3);
+        }
+    }
+    else if (preferenceType=="Road"){
+        for (size_t i=0;i<edgeListRemained.size();i++){
+            if (levels[i]<1) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*3);
+        }
+    }
+
+    vector<CompleteEdge> edgeListCleaned;
+    removeDuplicates(edgeListRemained, edgeListCleaned);
 
     // default level is for all n nodes is n
     vector<LevelID> nodeLevels(n, n);
@@ -318,7 +354,7 @@ datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable(istream &inGra
         VERBOSE( cout << "max hwy node level = " << max << endl );
     }
 
-    return new datastr::graph::UpdateableGraph(edgeListWithoutDuplicates, nodeLevels);
+    return new datastr::graph::UpdateableGraph(edgeListCleaned, nodeLevels);
 }
 
 #endif // CREATEGRAPH_H
