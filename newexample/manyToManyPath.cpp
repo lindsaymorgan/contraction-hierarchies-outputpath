@@ -107,13 +107,15 @@ public:
     string nodes_fn;
     string break_fn="";
     string result_fn;
+    string preference_times_fn="3";
 
-    many2many_opts() : options_parser_t("i:n:o:b:") {}
+    many2many_opts() : options_parser_t("i:n:o:b:t:") {}
     void parse() override {
         // input params
         set_option('i', &input_fn);
         set_option('n', &nodes_fn);
         set_option('b',&break_fn);
+        set_option('t',&preference_times_fn);
 
         // output params
         set_option('o', &result_fn);
@@ -127,7 +129,7 @@ public:
 
     void
     usage(const char *p) override {
-        cerr << "usage: " << p << " -i graph.ddsg -n query.txt -b break.txt -o result.txt" << endl;
+        cerr << "usage: " << p << " -t int -i graph.ddsg -n query.txt -b break.txt -o result.txt" << endl;
     }
 };
 
@@ -139,6 +141,9 @@ int main(int argc, char *argv[]) {
 
     many2many_opts opts;
     opts.parse_options(argc, argv);
+
+    //体现偏好的倍率
+    int preference_times =stoi(opts.preference_times_fn);
 
     const bool writeSourceNodes = false;
     const bool writeMatrix = false;
@@ -213,14 +218,14 @@ int main(int argc, char *argv[]) {
     datastr::graph::UpdateableGraph *tOriginGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
                                                                                angles, n, 4,
                                                                                180, "",
-                                                                               "");
-    processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraOriginTest(tOriginGraph);
+                                                                               "",preference_times);
+//    processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraOriginTest(tOriginGraph);
 //    end = clock();
 //    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
     //many to many test
     NodeID source, target;
-    Path path,pathreal;
+    Path path;
 
     string reFile = opts.result_fn;
     ofstream resultfile (reFile.c_str());
@@ -235,24 +240,17 @@ int main(int argc, char *argv[]) {
             datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
                                                                                        angles, n, lowestLevels[i],
                                                                                        highestangles[i], preferences[i],
-                                                                                       "");
-            processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
+                                                                                       "",preference_times);
+            processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph,tOriginGraph);
 //        end = clock();
 //            cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
             dijkstraTest.bidirSearch(source, target);
 
             dijkstraTest.pathTo(path, target, -1);
-            if (preferences[i]!=""){
-                resultfile << tasks[i] <<" "<< source<< " " << target << " " << path.length() << endl;
-                resultfile << path ;
-            }
-            else{
-                pathreal
-            }
+            resultfile << tasks[i] <<" "<< source<< " " << target << " " << path.length() << endl;
+            resultfile << path ;
 
-
-//        paths.push_back(path);
             dijkstraTest.clear();
 
         }

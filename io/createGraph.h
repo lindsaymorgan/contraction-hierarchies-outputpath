@@ -322,7 +322,7 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
 
 datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable( vector<CompleteEdge>& edgeList, vector<int>& levels,
                                                                    vector<int>& angles, NodeID n, int lowestLevel, int highestDegree,
-                                                                   string preferenceType ,const string filenameHwyNodes) {
+                                                                   string preferenceType , const string filenameHwyNodes, int preference_times) {
     vector<CompleteEdge> edgeListRemained;
     if (lowestLevel<4 || highestDegree<180){
         for (size_t i=0;i<edgeList.size();i++){
@@ -335,12 +335,12 @@ datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable( vector<Comple
 
     if (preferenceType=="Rail"){
         for (size_t i=0;i<edgeListRemained.size();i++){
-            if (levels[i]>0) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*3);
+            if (levels[i]>0) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*preference_times);
         }
     }
     else if (preferenceType=="Road"){
         for (size_t i=0;i<edgeListRemained.size();i++){
-            if (levels[i]<1) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*3);
+            if (levels[i]<1) edgeListRemained[i].setWeight(edgeListRemained[i].weight()*preference_times);
         }
     }
 

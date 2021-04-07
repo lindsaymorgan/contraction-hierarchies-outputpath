@@ -64,6 +64,7 @@ protected:
         }
     }
 
+
     virtual void parse()              = 0;
     virtual void run_checks()         = 0;
     virtual void usage(const char *p) = 0;

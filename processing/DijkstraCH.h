@@ -101,8 +101,9 @@ public:
      * Constructor.
      * @param graph a pointer to the graph
      */
-    DijkstraCH(Graph* graph)
+    DijkstraCH(Graph* graph,Graph* origingraph)
     : _graph(graph),
+      _origingraph(origingraph),
       _upperBound(Weight::MAX_VALUE)
     {
         assert( (searchDirections >= 1) && (searchDirections <= 2) );
@@ -423,7 +424,7 @@ public:
                 t = parent;
                 EdgeID e = pqData(searchID, index).parentEdge();
 
-                path.add( t, _graph->edge(e).weight(), e, _graph->edge(e).isShortcut() );
+                path.add( t, _origingraph->edge(e).weight(), e, _graph->edge(e).isShortcut() );
             }
         }
 
