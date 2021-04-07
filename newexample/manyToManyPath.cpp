@@ -105,13 +105,15 @@ public:
 
     string input_fn;
     string nodes_fn;
+    string break_fn="";
     string result_fn;
 
-    many2many_opts() : options_parser_t("i:n:o:") {}
+    many2many_opts() : options_parser_t("i:n:o:b:") {}
     void parse() override {
         // input params
         set_option('i', &input_fn);
         set_option('n', &nodes_fn);
+        set_option('b',&break_fn);
 
         // output params
         set_option('o', &result_fn);
@@ -125,7 +127,7 @@ public:
 
     void
     usage(const char *p) override {
-        cerr << "usage: " << p << " -i graph.ddsg -n query.txt -o result.txt" << endl;
+        cerr << "usage: " << p << " -i graph.ddsg -n query.txt -b break.txt -o result.txt" << endl;
     }
 };
 
@@ -144,33 +146,26 @@ int main(int argc, char *argv[]) {
 
     VERBOSE(cerr << "read graph from '" << opts.input_fn << "'" << endl);
     VERBOSE( cerr << "read nodes from '" << opts.nodes_fn << "'" << endl);
-
-    //read graph
-    string ddsgFile = opts.input_fn;
-    ifstream in(ddsgFile.c_str());
-    if (!in.is_open()) {
-        cerr << "Cannot open " << ddsgFile << endl;
-        exit(1);
-    }
-    auto[originEdgeList,levels,angles,n]  = readOringinGraphStream(in, false, false);
-    in.close();
-    end = clock();
-    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
+    VERBOSE( cerr << "read break edges from '" << opts.break_fn << "'" << endl);
 
     //read node list
     stPairs stNodes;
     string nodeFile = opts.nodes_fn;
     ifstream stFile(nodeFile.c_str());
+    int taskID;
     NodeID s,t;
     int lowestLevel;
     int highestangle;
     string preference;
+    vector<int> tasks;
     vector<int> lowestLevels;
     vector<int> highestangles;
     vector<string> preferences;
 
+    //read query file
     if (stFile.is_open()) {
-        while(stFile>>s>>t>>lowestLevel>>highestangle>>preference){
+        while(stFile>>taskID>>s>>t>>lowestLevel>>highestangle>>preference){
+            tasks.push_back(taskID);
             stNodes.push_back(stPair(s,t));
             lowestLevels.push_back(lowestLevel);
             highestangles.push_back(highestangle);
@@ -181,10 +176,51 @@ int main(int argc, char *argv[]) {
         cerr << "Cannot open " << nodeFile << endl;
         exit(1);
     }
+    stFile.close();
 
+    //read break list
+    string breakFile=opts.break_fn;
+    vector<CompleteEdge> originEdgeListnew;
+    stPairs breakPairs;
+    if (breakFile!=""){
+        ifstream bFile(breakFile.c_str());
+        if (bFile.is_open()) {
+            while(bFile>>s>>t) {
+                breakPairs.push_back(stPair(s,t));
+                breakPairs.push_back(stPair(t,s));
+            }
+        }
+        else {
+            cerr << "Cannot open " << breakFile << endl;
+            exit(1);
+        }
+//        originEdgeList=originEdgeListnew;
+        bFile.close();
+    }
+
+    //read graph
+    string ddsgFile = opts.input_fn;
+    ifstream in(ddsgFile.c_str());
+    if (!in.is_open()) {
+        cerr << "Cannot open " << ddsgFile << endl;
+        exit(1);
+    }
+    vector<CompleteEdge> originEdgeList;
+    vector<int> levels;
+    vector<int> angles;
+    NodeID n = readGraphFromStream(in,false, false, breakPairs, originEdgeList,levels,angles);
+    in.close();
+    datastr::graph::UpdateableGraph *tOriginGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
+                                                                               angles, n, 4,
+                                                                               180, "",
+                                                                               "");
+    processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraOriginTest(tOriginGraph);
+//    end = clock();
+//    cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
     //many to many test
     NodeID source, target;
+    Path path,pathreal;
 
     string reFile = opts.result_fn;
     ofstream resultfile (reFile.c_str());
@@ -195,19 +231,30 @@ int main(int argc, char *argv[]) {
             source=stNodes[i].first;
             target=stNodes[i].second;
 
+//        start = clock();
             datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
                                                                                        angles, n, lowestLevels[i],
                                                                                        highestangles[i], preferences[i],
                                                                                        "");
             processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
+//        end = clock();
+//            cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
             dijkstraTest.bidirSearch(source, target);
-            Path path;
-            dijkstraTest.pathTo(path, target, -1);
 
-            resultfile << source << " " << target << " " << path.length() << endl;
-            resultfile << path ;
+            dijkstraTest.pathTo(path, target, -1);
+            if (preferences[i]!=""){
+                resultfile << tasks[i] <<" "<< source<< " " << target << " " << path.length() << endl;
+                resultfile << path ;
+            }
+            else{
+                pathreal
+            }
+
+
+//        paths.push_back(path);
             dijkstraTest.clear();
+
         }
         resultfile.close();
     }

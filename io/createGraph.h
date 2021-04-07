@@ -24,10 +24,10 @@
 
 
 #include <cmath>
-
+#include <utility>
 #include "../datastr/graph/graph.h"
 #include "../datastr/graph/UpdateableGraph.h"
-
+typedef pair<NodeID, NodeID> stPair;
 
 /** The factor that the weights from the input are multiplied with. */
 double weightFactor = 1;
@@ -42,6 +42,23 @@ inline EdgeWeight randomEdgeWeight() {
     const EdgeWeight maxEdgeWeight = (EdgeWeight)1e2;
     return (EdgeWeight)(rand() / (double)(RAND_MAX+1.0) * maxEdgeWeight);
 }
+
+/**
+ * Removes broken edges from the input and writes
+ * the remaining edges to the output.
+ */
+void removeBrokens(vector<CompleteEdge>& input, stPairs& breakPairs, vector<CompleteEdge>& output){
+    stPair p1;
+    for (EdgeID i=0; i<input.size(); i++) {
+        CompleteEdge currentEdge = input[i];
+        p1=stPair(currentEdge.source(),currentEdge.target());
+        if (std::none_of(breakPairs.begin(), breakPairs.end(), [&p1](stPair i)
+        {return (i.first==p1.first & i.second==p1.second);})){
+            output.push_back( currentEdge );
+        }
+    }
+}
+
 
 /**
  * Removes parallel edges and self loops from the input and writes
@@ -148,7 +165,7 @@ void removeDuplicates(vector<CompleteEdge>& input, vector<CompleteEdge>& output)
  * Reads a list of edges from the given stream and adds them to the given vector.
  * @return the number of nodes
  */
-NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIsolatedNode,
+NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIsolatedNode, vector<stPair>& breakPairs,
                            vector<CompleteEdge>& edgeList, vector<int>& levels, vector<int>& angles) {
     NodeID n; // number of nodes
     EdgeID m; // number of edges
@@ -246,28 +263,32 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
         else {
             in >> weight ;
         }
-
         dir = 0;  //no sure
         if (directed) in >> dir >> level >> angle;
-        levels.push_back(level);
-        angles.push_back(angle);
-        levels.push_back(level);
-        angles.push_back(angle);
-        bool forward = true;  //if dir=1 then both true
-        bool backward = true;
+
+        stPair p1=stPair(source,target);
+        if (std::none_of(breakPairs.begin(), breakPairs.end(), [&p1](stPair i)
+        {return (i.first==p1.first & i.second==p1.second);})){
+
+            levels.push_back(level);
+            angles.push_back(angle);
+            levels.push_back(level);
+            angles.push_back(angle);
+            bool forward = true;  //if dir=1 then both true
+            bool backward = true;
 //        if (dir == 1) backward = false;
 //        else if (dir == 2) forward = false;
 //adapt for my dataset
-        if (dir == 2) backward = false;  //only forward
-        else if (dir == 3) forward = false;  //only backward
-        VERBOSE( if ((dir == 2) || (dir == 3)) onewayStreets++ );
+            if (dir == 2) backward = false;  //only forward
+            else if (dir == 3) forward = false;  //only backward
+            VERBOSE( if ((dir == 2) || (dir == 3)) onewayStreets++ );
 //        VERBOSE( if ((dir == 1) || (dir == 2)) onewayStreets++ );
-        // note: all CLOSED roads (dir = 3) are considered as OPEN !
+            // note: all CLOSED roads (dir = 3) are considered as OPEN !
 
-        CompleteEdge edge1(source, target, weight, false, forward, backward);
-        CompleteEdge edge2(target, source, weight, false, backward, forward);
-        edgeList.push_back(edge1);
-        edgeList.push_back(edge2);
+            CompleteEdge edge1(source, target, weight, false, forward, backward);
+            CompleteEdge edge2(target, source, weight, false, backward, forward);
+            edgeList.push_back(edge1);
+            edgeList.push_back(edge2);
 
 //        // Check wheter end of line is reached
 //        if ( in.peek() !=  '\n' && in.peek() != '\r' )
@@ -276,11 +297,9 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
 //          cerr << "Input format error, aborting." << endl;
 //          exit(1);
 //        }
-
+        }
     }
-
     VERBOSE( cout << onewayStreets << " oneway street(s)." << endl );
-
     if (addIsolatedNode) n++;
     return n;
 }
@@ -293,15 +312,13 @@ NodeID readGraphFromStream(istream &in, const bool adaptWeight, const bool addIs
  *       initially all nodes must have level n in the graph. The node order is specified
  *       separately.
  */
-struct originGraphResult { vector<CompleteEdge> edgeList;vector<int> levelList;vector<int> angleList; NodeID nodeNum; };
-originGraphResult readOringinGraphStream(istream &inGraph, const bool adaptWeight,
-                                       const bool addIsolatedNode){
-    vector<CompleteEdge> originEdgeList;
-    vector<int> levels;
-    vector<int> angles;
-    const NodeID n = readGraphFromStream(inGraph, adaptWeight, addIsolatedNode, originEdgeList,levels,angles);
-    return {originEdgeList, levels, angles, n};
-}
+//struct originGraphResult { vector<CompleteEdge> edgeList;vector<int> levelList;vector<int> angleList; NodeID nodeNum; };
+//NodeID readOriginGraphStream(istream &inGraph, vector<stPair> breakPairs,vector<CompleteEdge> originEdgeList,
+//                                         vector<int> levels, vector<int> angles, const bool adaptWeight,const bool addIsolatedNode){
+//
+//    const NodeID n = readGraphFromStream(inGraph, adaptWeight, addIsolatedNode, breakPairs, originEdgeList,levels,angles);
+//    return n;
+//}
 
 datastr::graph::UpdateableGraph* importGraphListOfEdgesUpdateable( vector<CompleteEdge>& edgeList, vector<int>& levels,
                                                                    vector<int>& angles, NodeID n, int lowestLevel, int highestDegree,

@@ -969,6 +969,9 @@ private:
     /** The graph. */
     Graph *const _graph;
 
+    /** The graph. */
+    Graph *const _origingraph;
+
     /** One priority queue for each search direction. */
     PQueue _pq[searchDirections];
 
