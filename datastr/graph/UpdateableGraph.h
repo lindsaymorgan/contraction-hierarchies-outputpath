@@ -1088,6 +1088,7 @@ private:
         // for each node into the adjacency array
         EdgeID e = 0;
         for (NodeID u = 0; u < nodeLevels.size(); u++) {  //
+
             UpdNode& nodeU = _nodes[u];
             nodeU.setFirstEdge(_edges.size());
             while ((e < edges.size()) && (edges[e].source() == u) && (node(edges[e].target()).level() < node(u).level())) {
@@ -1095,17 +1096,23 @@ private:
                 _edges.push_back(edges[e]);
                 e++;
             }
+
             nodeU.setFirstLevelEdge(_edges.size());
             while ((e < edges.size()) && (edges[e].source() == u)) {
-                if ( edges[e].weight() == 0 ) continue;
+                if ( edges[e].weight() == 0 ) {
+                    e++;
+                    continue;
+                }
                 assert( edges[e].weight() > 0 );
                 _edges.push_back(edges[e]);
                 e++;
             }
+
             nodeU.setLastEdge(_edges.size());
             EdgeID offset = _edges.size() - firstEdge(u);
             node(u).setIncreasedCapacity();
             appendClosedEdges(offset, edgeCapacity(u, offset));
+
         }
 
         assert( checkReverseGraphExists() );

@@ -236,14 +236,12 @@ int main(int argc, char *argv[]) {
             source=stNodes[i].first;
             target=stNodes[i].second;
 
-//        start = clock();
             datastr::graph::UpdateableGraph *tGraph = importGraphListOfEdgesUpdateable(originEdgeList, levels,
                                                                                        angles, n, lowestLevels[i],
                                                                                        highestangles[i], preferences[i],
                                                                                        "",preference_times);
+//            processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph);
             processing::DijkstraCH<datastr::graph::UpdateableGraph, NormalPQueue, 2, false> dijkstraTest(tGraph,tOriginGraph);
-//        end = clock();
-//            cout << (double) (end - start) / CLOCKS_PER_SEC << endl;
 
             dijkstraTest.bidirSearch(source, target);
 
