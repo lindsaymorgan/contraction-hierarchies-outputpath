@@ -27,11 +27,6 @@ How to build & run
 
 use Clion
 
-Sources of documentation
-------------------------
-
-In docs/index.html, there are some examples what command-line arguments
-can be used to create a CH and perform tests.
 
 Usage
 ------------------------
